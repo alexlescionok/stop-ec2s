@@ -1,7 +1,7 @@
-name: Deploy Lambda to AWS
+name: Terraform Plan
 on: [push]
 jobs:
-  Explore-GitHub-Actions:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - name: Set up Python 3.13
@@ -17,6 +17,13 @@ jobs:
       - name: Run terraform init
         working-directory: terraform
         run: terraform init
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: "eu-west-1"
+      - name: Run terraform validate
+        working-directory: terraform
+        run: terraform validate -no-color
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

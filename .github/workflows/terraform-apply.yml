@@ -28,7 +28,7 @@ jobs:
       - name: Run terraform apply
         working-directory: terraform
         id: apply
-        run: terraform apply -no-color
+        run: terraform apply -no-color -auto-approve
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
