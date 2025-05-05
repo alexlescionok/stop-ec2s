@@ -14,9 +14,9 @@ terraform {
   required_version = "~> 1.11.0"
 
   backend "s3" {
-    bucket = "REPLACE_ME"
-    region = "REPLACE_ME"
-    key    = "REPLACE_ME"
+    bucket = "lescionok-terraform-state"
+    region = "eu-west-1"
+    key    = "stop-ec2s"
 
     encrypt      = true
     use_lockfile = true
