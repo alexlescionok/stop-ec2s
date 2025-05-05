@@ -1,5 +1,11 @@
 name: Terraform Plan
-on: [push]
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
 jobs:
   validate:
     runs-on: ubuntu-latest
