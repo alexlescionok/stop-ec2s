@@ -1,11 +1,7 @@
 locals {
-  default_region = "REPLACE_ME"
   default_tags = {
-    /*
-    Default tags you wish to apply across all resources provisioned by terraform, for example:
-    environment = "production"
-    project     = "core-components"
-    */
+    environment = "test"
+    project     = "github-actions-testing"
   }
 }
 
@@ -16,7 +12,7 @@ terraform {
   backend "s3" {
     bucket = "lescionok-terraform-state"
     region = "eu-west-1"
-    key    = "stop-ec2s"
+    key    = "github-actions-testing/stop-ec2s"
 
     encrypt      = true
     use_lockfile = true
@@ -33,10 +29,6 @@ terraform {
 
 ### Default provider
 provider "aws" {
-  region                   = local.default_region
-  shared_config_files      = ["$HOME/.aws/config"]
-  shared_credentials_files = ["$HOME/.aws/credentials"]
-  profile                  = "REPLACE_ME"
   default_tags {
     tags = local.default_tags
   }
