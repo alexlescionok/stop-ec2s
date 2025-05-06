@@ -54,6 +54,9 @@ def stop_instances(instances: list) -> dict:
     instances: list
         The string that the function will match against running EC2 instances.
     """
+    if not isinstance(instances, list):
+        raise TypeError("instances must be a list. Ending operation here.")
+    
     try:
         print(f"Attempting to stop the following running instances: {instances}")
         response = ec2_client.stop_instances(InstanceIds=instances)
