@@ -1,0 +1,96 @@
+name: Terraform Plan, Python Lint, and PyTest
+
+on:
+  pull_request:
+    types: 
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+    paths:
+      - 'terraform/**'
+      - 'src/**'
+      - 'tests/**'
+  workflow_dispatch:
+
+jobs:
+  terraform-plan:
+    runs-on: ubuntu-latest
+    if: contains(join(github.event.pull_request.changed_files.*.filename), 'terraform/')
+    steps:
+      - name: Set up Terraform 1.11.0
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.11.0"
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Run terraform init
+        working-directory: terraform
+        run: terraform init
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: "eu-west-1"
+      - name: Run terraform fmt
+        working-directory: terraform
+        run: terraform fmt
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: "eu-west-1"
+      - name: Run terraform validate
+        working-directory: terraform
+        run: terraform validate -no-color
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: "eu-west-1"
+      - name: Run terraform plan
+        working-directory: terraform
+        id: plan
+        run: terraform plan -no-color
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: "eu-west-1"
+
+  python-lint:
+    runs-on: ubuntu-latest
+    if: |
+      contains(join(github.event.pull_request.changed_files.*.filename), 'src/') ||
+      contains(join(github.event.pull_request.changed_files.*.filename), 'tests/')
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Run Ruff
+        uses: astral-sh/ruff-action@v3
+
+  pytest:
+    runs-on: ubuntu-latest
+    needs: [python-lint]
+    if: |
+      contains(join(github.event.pull_request.changed_files.*.filename), 'src/') ||
+      contains(join(github.event.pull_request.changed_files.*.filename), 'tests/')
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest
+      - name: Run PyTest
+        working-directory: tests
+        run: |
+          pytest test_functions.py --maxfail=0 --disable-warnings -q

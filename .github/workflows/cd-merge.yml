@@ -1,10 +1,14 @@
-name: Deploy Lambda to AWS
+name: Terraform Apply
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
 jobs:
   deploy:
+    if: |
+      contains(join(github.event.head_commit.modified, github.event.head_commit.added, github.event.head_commit.removed), 'terraform/') ||
+      contains(join(github.event.head_commit.modified, github.event.head_commit.added, github.event.head_commit.removed), 'src/')
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
@@ -12,7 +16,7 @@ jobs:
       - name: Set up Python 3.13
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: "3.13"
       - run: python3 --version
       - name: Set up Terraform 1.11.0
         uses: hashicorp/setup-terraform@v3
