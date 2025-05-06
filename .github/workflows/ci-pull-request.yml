@@ -1,13 +1,38 @@
 name: Terraform Plan, Python Lint, and PyTest
 
 on:
-  push:
+  pull_request:
+    paths:
+      - 'terraform/**'
+      - 'src/**'
+      - 'tests/**'
   workflow_dispatch:
 
 jobs:
-  terraform-plan:
+  changed-files:
     runs-on: ubuntu-latest
-    if: contains(join(github.event.pull_request.changed_files.*.filename), 'terraform/')
+    name: Get changed files
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      # Use the `changed-files` action to get all the changed files in the PR
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v46
+        with:
+          files_yaml: |
+            terraform:
+              - 'terraform/**'
+            src:
+              - 'src/**'
+            tests:
+              - 'tests/**'
+
+  terraform-plan:
+    needs: changed-files
+    runs-on: ubuntu-latest
+    if: steps.changed-files.outputs.terraform_any_changed == 'true'
     steps:
       - name: Set up Terraform 1.11.0
         uses: hashicorp/setup-terraform@v3
@@ -15,10 +40,6 @@ jobs:
           terraform_version: "1.11.0"
       - name: Check out repository code
         uses: actions/checkout@v4
-      - name: Set up Python 3.13
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
       - name: Run terraform init
         working-directory: terraform
         run: terraform init
@@ -26,23 +47,8 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: "eu-west-1"
-      - name: Run terraform fmt
-        working-directory: terraform
-        run: terraform fmt
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: "eu-west-1"
-      - name: Run terraform validate
-        working-directory: terraform
-        run: terraform validate -no-color
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: "eu-west-1"
       - name: Run terraform plan
         working-directory: terraform
-        id: plan
         run: terraform plan -no-color
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -50,10 +56,9 @@ jobs:
           AWS_REGION: "eu-west-1"
 
   python-lint:
+    needs: changed-files
     runs-on: ubuntu-latest
-    if: |
-      contains(join(github.event.pull_request.changed_files.*.filename), 'src/') ||
-      contains(join(github.event.pull_request.changed_files.*.filename), 'tests/')
+    if: steps.changed-files.outputs.src_any_changed == 'true' || steps.changed-files.outputs.tests_any_changed == 'true'
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -65,11 +70,9 @@ jobs:
         uses: astral-sh/ruff-action@v3
 
   pytest:
-    runs-on: ubuntu-latest
     needs: [python-lint]
-    if: |
-      contains(join(github.event.pull_request.changed_files.*.filename), 'src/') ||
-      contains(join(github.event.pull_request.changed_files.*.filename), 'tests/')
+    runs-on: ubuntu-latest
+    if: steps.changed-files.outputs.src_any_changed == 'true' || steps.changed-files.outputs.tests_any_changed == 'true'
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -84,4 +87,4 @@ jobs:
       - name: Run PyTest
         working-directory: tests
         run: |
-          pytest test_functions.py --maxfail=0 --disable-warnings -q
+          pytest --maxfail=0 --disable-warnings -q
