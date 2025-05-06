@@ -1,6 +1,6 @@
 import boto3
 
-ec2_client = boto3.client('ec2', region="eu-west-1")
+ec2_client = boto3.client('ec2', region_name="eu-west-1")
 
 # Including pagination to reduce the chance of throttling and timeouts 
 paginator = ec2_client.get_paginator('describe_instances')
