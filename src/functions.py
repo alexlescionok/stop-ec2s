@@ -17,6 +17,9 @@ def get_instances(string_to_match: str) -> list:
     ----------
     running_instances: the list of EC2 IDs.
     """
+    if not isinstance(string_to_match, str):
+        raise TypeError("string_to_match must be a string. Ending operation here.")
+    
     try:
         page_iterator = paginator.paginate(
             Filters = [
@@ -36,7 +39,7 @@ def get_instances(string_to_match: str) -> list:
             for reservation in page['Reservations']:
                 for instance in reservation['Instances']:
                     running_instances.append((instance['InstanceId']))
-        
+        print(page)
         print(f"Found the following running instances with names that include '{string_to_match}': {running_instances}")
         return running_instances
     except Exception as e:
