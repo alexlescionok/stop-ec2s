@@ -30,6 +30,10 @@ cd stop-ec2s
 ```
 
 ## Usage
+### Terraform
+The AWS provider and versions are defined in `terraform/00_terraform.tf`. To apply the code, you will need to update the `backend` configuration to match where you store the Terraform state.
+
+### Triggering AWS Lambda
 The AWS Lambda is triggered by an event. For example, to stop running EC2 instances that match the string "testing", pass the following object: `{"StringToMatch": "testing"}`. This can be triggered manually or by other AWS services, for example, Amazon EventBridge.
 
 ## Running Tests
