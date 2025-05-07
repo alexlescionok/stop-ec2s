@@ -1,4 +1,5 @@
 import boto3
+import json
 
 ec2_client = boto3.client('ec2', region_name="eu-west-1")
 

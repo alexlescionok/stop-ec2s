@@ -49,3 +49,6 @@ The `ci-pull-request.yml` workflow runs during pull requests that include change
 
 ### Continuous Deployment
 The `cd-merge.yml` workflow runs when a pull request with changes to the `src`, `tests`, or `terraform` directories is merged into the `main` branch. When this happens, the workflow applies the Terraform code.
+
+## License
+This project is licensed under the [MIT License](LICENSE).
