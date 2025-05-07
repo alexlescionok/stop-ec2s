@@ -3,12 +3,13 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'terraform/**'
+      - 'src/**'
+      - 'tests/**'
   workflow_dispatch:
 jobs:
   deploy:
-    if: |
-      contains(join(github.event.head_commit.modified, github.event.head_commit.added, github.event.head_commit.removed), 'terraform/') ||
-      contains(join(github.event.head_commit.modified, github.event.head_commit.added, github.event.head_commit.removed), 'src/')
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
